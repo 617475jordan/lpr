@@ -4,8 +4,8 @@
 #include "Base64.h" 
 #include <iostream>  
 using namespace std;
-const char g_key[17] = "asdfwetyhjuytrfd";
-const char g_iv[17] = "gfdertfghjkuyrtg";
+const char g_key[2][17] = { "hteadrvfs4rwff12","asdfwetyhjuytrfd" };
+const char g_iv[2][17] = { "ur4frwsad3ef4uea","gfdertfghjkuyrtg" };
 
 
 const int sm_alog[256] =
@@ -1135,7 +1135,7 @@ void AES::Decrypt(char const* in, char* result, size_t n, int iMode)
 	}
 }
 
-std::string AES::EncryptionAES(const string& strSrc)
+std::string AES::EncryptionAES(const string& strSrc, int ID)
 {
 	size_t length = strSrc.length();
 	int block_num = length / BLOCK_SIZE + 1;
@@ -1159,8 +1159,8 @@ std::string AES::EncryptionAES(const string& strSrc)
 	memset(szDataOut, 0, block_num * BLOCK_SIZE + 1);
 
 	//进行进行AES的CBC模式加密  
-	
-	MakeKey(g_key, g_iv, 16, 16);
+
+	MakeKey(g_key[ID], g_iv[ID], 16, 16);
 	Encrypt(szDataIn, szDataOut, block_num * BLOCK_SIZE, AES::CBC);
 	string str = base64_encode((unsigned char*)szDataOut,
 		block_num * BLOCK_SIZE);
@@ -1169,7 +1169,7 @@ std::string AES::EncryptionAES(const string& strSrc)
 	return str;
 }
 
-std::string AES::DecryptionAES(const string& strSrc)
+std::string AES::DecryptionAES(const string& strSrc, int ID)
 {
 	string strData = base64_decode(strSrc);
 	size_t length = strData.length();
@@ -1181,7 +1181,7 @@ std::string AES::DecryptionAES(const string& strSrc)
 	memcpy(szDataOut, strData.c_str(), length + 1);
 
 	//进行AES的CBC模式解密  
-	MakeKey(g_key, g_iv, 16, 16);
+	MakeKey(g_key[ID], g_iv[ID], 16, 16);
 	Decrypt(szDataIn, szDataOut, length, AES::CBC);
 
 	//去PKCS7Padding填充  

@@ -58,8 +58,8 @@ private:
 	void Encrypt(char const* in, char* result, size_t n, int iMode = ECB);
 	void Decrypt(char const* in, char* result, size_t n, int iMode = ECB);
 public:
-	string EncryptionAES(const string& strSrc); //AES加密  
-	string DecryptionAES(const string& strSrc); //AES解密  
+	string EncryptionAES(const string& strSrc,int ID); //AES加密  
+	string DecryptionAES(const string& strSrc, int ID); //AES解密  
 };
 
 #endif // __RIJNDAEL_H__ 
