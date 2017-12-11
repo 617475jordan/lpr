@@ -16,17 +16,17 @@ struct physicicalData
 	string         m_biosID;
 	string         m_hardDiskID;
 	string         m_mainPlateID;
-	string         m_cpuType;
+	string         m_cpuInformation;
 	long           m_cpuFreq = -1;
 	void clear()
 	{
-		m_cpuType.clear();
 		m_cpuId.clear();
 		m_macAddress.clear();
 		m_biosID.clear();
 		m_hardDiskID.clear();
 		m_mainPlateID.clear();
 		m_cpuFreq = -1;
+		m_cpuInformation.clear();
 	}
 };
 
@@ -36,12 +36,12 @@ public:
 	getHardInformation();
 	~getHardInformation();
 	physicicalData getHardResult();
-private:
+protected:
 	double CpuFrequency();
+	string getInformation(std::string Type);
 	unsigned __int64 RDTSC()
 	{
 		__asm _emit 0x0F;
 		__asm _emit 0x31;
 	}
 };
-
