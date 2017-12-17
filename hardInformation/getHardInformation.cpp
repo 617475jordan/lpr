@@ -105,7 +105,7 @@ physicicalData getHardInformation::getHardResult()
 	__int32 deBuf[4];
 	__cpuidex(deBuf, 01, 0);
 	char result[100];
-	sprintf(result, "%.8x%.8x", deBuf[3], deBuf[0]);
+	sprintf(result, "%.8X%.8X", deBuf[3], deBuf[0]);
 	m_physicicalData.m_cpuId.push_back(result);
 
 	/*
