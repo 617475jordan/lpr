@@ -62,45 +62,45 @@ physicicalData getHardInformation::getHardResult()
 	physicicalData m_physicicalData;
 	m_physicicalData.clear();
 
-	/************获取Mac序列号**************/
-	PIP_ADAPTER_INFO pIpAdapterInfo = new IP_ADAPTER_INFO();
-	unsigned long stSize = sizeof(IP_ADAPTER_INFO);
-	int nRel = GetAdaptersInfo(pIpAdapterInfo, &stSize);
-	int netCardNum = 0;
-	if (ERROR_BUFFER_OVERFLOW == nRel)
-	{
-		delete pIpAdapterInfo;
-		pIpAdapterInfo = (PIP_ADAPTER_INFO)new BYTE[stSize];
-		nRel = GetAdaptersInfo(pIpAdapterInfo, &stSize);
-	}
+	///************获取Mac序列号**************/
+	//PIP_ADAPTER_INFO pIpAdapterInfo = new IP_ADAPTER_INFO();
+	//unsigned long stSize = sizeof(IP_ADAPTER_INFO);
+	//int nRel = GetAdaptersInfo(pIpAdapterInfo, &stSize);
+	//int netCardNum = 0;
+	//if (ERROR_BUFFER_OVERFLOW == nRel)
+	//{
+	//	delete pIpAdapterInfo;
+	//	pIpAdapterInfo = (PIP_ADAPTER_INFO)new BYTE[stSize];
+	//	nRel = GetAdaptersInfo(pIpAdapterInfo, &stSize);
+	//}
 
-	if (ERROR_SUCCESS == nRel)
-	{
-		while (pIpAdapterInfo)
-		{
-			//cout <<  << ++netCardNum << endl;
-			//cout << "Macaddress:";
-			string m_strMacAddress;
-			for (DWORD i = 0; i < pIpAdapterInfo->AddressLength; i++)
-			{
-				char m_tenToSixteen[100];
-				sprintf(m_tenToSixteen, "%x", pIpAdapterInfo->Address[i]);
-				if (i < pIpAdapterInfo->AddressLength - 1)
-				{
-					m_strMacAddress = m_strMacAddress + m_tenToSixteen + "-";
-				}
-				else
-				{
-					m_strMacAddress = m_strMacAddress + m_tenToSixteen;
-				}
-			}
-			m_physicicalData.m_macAddress.push_back(m_strMacAddress);
-			m_strMacAddress.clear();
-			pIpAdapterInfo = pIpAdapterInfo->Next;
+	//if (ERROR_SUCCESS == nRel)
+	//{
+	//	while (pIpAdapterInfo)
+	//	{
+	//		//cout <<  << ++netCardNum << endl;
+	//		//cout << "Macaddress:";
+	//		string m_strMacAddress;
+	//		for (DWORD i = 0; i < pIpAdapterInfo->AddressLength; i++)
+	//		{
+	//			char m_tenToSixteen[100];
+	//			sprintf(m_tenToSixteen, "%x", pIpAdapterInfo->Address[i]);
+	//			if (i < pIpAdapterInfo->AddressLength - 1)
+	//			{
+	//				m_strMacAddress = m_strMacAddress + m_tenToSixteen + "-";
+	//			}
+	//			else
+	//			{
+	//				m_strMacAddress = m_strMacAddress + m_tenToSixteen;
+	//			}
+	//		}
+	//		m_physicicalData.m_macAddress.push_back(m_strMacAddress);
+	//		m_strMacAddress.clear();
+	//		pIpAdapterInfo = pIpAdapterInfo->Next;
 
-		}
+	//	}
 
-	}
+	//}
 	/************获取CPU序列号**************/
 	__int32 deBuf[4];
 	__cpuidex(deBuf, 01, 0);
@@ -120,6 +120,7 @@ physicicalData getHardInformation::getHardResult()
 		m_physicicalData.m_AdapterName.push_back(getAdapterInfo()[i].m_AdapterName);
 		m_physicicalData.m_AdapterType.push_back(getAdapterInfo()[i].m_AdapterType);
 		m_physicicalData.m_AdapterDescription.push_back(getAdapterInfo()[i].m_AdapterDescription);
+		m_physicicalData.m_macAddress.push_back(getAdapterInfo()[i].m_macAddress);
 	}
 	//m_physicicalData.m_Adapterinfo = getAdapterInfo();
 	//m_physicicalData.m_timeZone = getInformation("Win32_TimeZone");
@@ -441,37 +442,21 @@ std::vector<AdapterData> getHardInformation::getAdapterInfo()
 			}
 			m_AdapterData.m_AdapterType=m_type;
 			//cout << "网卡MAC地址 : ";
-			//for (DWORD i = 0; i < pAdapter->AddressLength; i++)
-			//{
-			//	if (i < pAdapter->AddressLength - 1)
-			//	{
-			//		printf("%02X-", pAdapter->Address[i]);
-			//	}
-			//	else
-			//	{
-			//		printf("%02X\n", pAdapter->Address[i]);
-			//	}
-			//}
-			//cout << "网卡IP地址如下 : " << endl;
-			//// 可能网卡有多 IP , 因此通过循环去判断
-			//IP_ADDR_STRING *pIPAddrString = &(pAdapter->IpAddressList);
-			//nIPNumPerNetCard = 0;
-			//while (pIPAddrString)
-			//{
-			//	cout << "该网卡上的IP数量 : " << ++nIPNumPerNetCard << endl;
-			//	cout << "IP 地址 : " << pIPAddrString->IpAddress.String << endl;
-			//	cout << "子网地址 : " << pIPAddrString->IpMask.String << endl;
-			//	cout << "网关地址 : " << pAdapter->GatewayList.IpAddress.String << endl;
-			//	pIPAddrString = pIPAddrString->Next;
-			//}
-			//if (GetAdapterState(pAdapter->Index))
-			//{
-			//	cout << "网卡工作正常" << endl;
-			//}
-			//else
-			//{
-			//	cout << "网卡工作异常" << endl;
-			//}
+			string m_strMacAddress;
+			for (DWORD i = 0; i < pAdapter->AddressLength; i++)
+			{
+				char m_tenToSixteen[100];
+				sprintf(m_tenToSixteen, "%X", pAdapter->Address[i]);
+				if (i < pAdapter->AddressLength - 1)
+				{
+					m_strMacAddress = m_strMacAddress + m_tenToSixteen + "-";
+				}
+				else
+				{
+					m_strMacAddress = m_strMacAddress + m_tenToSixteen;
+				}
+			}
+			m_AdapterData.m_macAddress=m_strMacAddress;
 			m_vecAdapterData.push_back(m_AdapterData);
 			pAdapter = pAdapter->Next;
 			//cout << "--------------------------------------------------------------------" << endl;

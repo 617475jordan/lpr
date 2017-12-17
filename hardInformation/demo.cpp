@@ -11,12 +11,6 @@ int main(int argc, char* argv[])
 	m_phy = m_getHardInformation->getHardResult();
 	m_getHardInformation = NULL;
 	delete[] m_getHardInformation;
-	cout << "MACAddress:" << endl;
-	for (unsigned int i = 0; i < m_phy.m_macAddress.size(); i++)
-	{
-		cout << "NO " << i+1 <<":";
-		cout << m_phy.m_macAddress[i].c_str() << endl;
-	}
 	//cout <<"CPU TYPE:" <<m_phy.m_cpuType.c_str()/* << endl*/;
 	cout << "CPU ID:";
 	for (unsigned int i = 0; i < m_phy.m_cpuId.size(); i++)
@@ -32,6 +26,7 @@ int main(int argc, char* argv[])
 		cout << "m_AdapterName" <<  ":" << m_phy.m_AdapterName[i] << endl;
 		cout << "m_Description" <<  ":" << m_phy.m_AdapterDescription[i] << endl;
 		cout << "m_Type" <<  ":" << m_phy.m_AdapterType[i] << endl;
+		cout << "Mac:"<<m_phy.m_macAddress[i] << endl;
 	}
 	//cout << "baseboard Information:" << m_phy.m_baseBoard.c_str() << endl;
 	//cout << "timezone Information:" << m_phy.m_timeZone.c_str() << endl;

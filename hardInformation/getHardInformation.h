@@ -47,11 +47,13 @@ struct AdapterData
 	string m_AdapterName;
 	string m_AdapterDescription;
 	string m_AdapterType;
+	string m_macAddress;
 	void clear()
 	{
 		m_AdapterName.clear();
 		m_AdapterDescription.clear();
 		m_AdapterType.clear();
+		m_macAddress.clear();
 	}
 };
 class getHardInformation
