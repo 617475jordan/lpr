@@ -108,9 +108,21 @@ physicicalData getHardInformation::getHardResult()
 	sprintf(result, "%.8x%.8x", deBuf[3], deBuf[0]);
 	m_physicicalData.m_cpuId.push_back(result);
 
+	/*
+	获取cpu实际频率，获取bios信息，获取系统设定的cpu信息
+	*/
 	m_physicicalData.m_cpuFreq = CpuFrequency();
-	m_physicicalData.m_biosID = getInformation("Win32_BIOS");
+	m_physicicalData.m_bios = getInformation("Win32_BIOS");
 	m_physicicalData.m_cpuInformation = getInformation("Win32_Processor");
+
+	for (int i = 0; i < getAdapterInfo().size(); i++)
+	{
+		m_physicicalData.m_AdapterName.push_back(getAdapterInfo()[i].m_AdapterName);
+		m_physicicalData.m_AdapterType.push_back(getAdapterInfo()[i].m_AdapterType);
+		m_physicicalData.m_AdapterDescription.push_back(getAdapterInfo()[i].m_AdapterDescription);
+	}
+	//m_physicicalData.m_Adapterinfo = getAdapterInfo();
+	//m_physicicalData.m_timeZone = getInformation("Win32_TimeZone");
 	return m_physicicalData;
 }
 
@@ -317,7 +329,7 @@ string getHardInformation::getInformation(std::string Type)
 
 		// Get the value of the Name property  
 		hr = pclsObj->Get(L"Name", 0, &vtProp, 0, 0);
-		//wcout << " bios Name : " << vtProp.bstrVal << endl;
+		//wcout << "  Name : " << vtProp.bstrVal << endl;
 		m_cpuInforamtion = (_bstr_t)vtProp.bstrVal;
 		VariantClear(&vtProp);
 
@@ -335,5 +347,143 @@ string getHardInformation::getInformation(std::string Type)
 	return m_cpuInforamtion;   // Program successfully completed.  
 }
 
+bool getHardInformation::GetAdapterState(DWORD nIndex)
+{
+	MIB_IFROW miInfo;   // 存放获取到的 Adapter 参数
+	memset(&miInfo, 0, sizeof(MIB_IFROW));
+	miInfo.dwIndex = nIndex;   // dwIndex 是需要获取的 Adapter 的索引
+	if (GetIfEntry(&miInfo) != NOERROR)
+	{
+		//printf("ErrorCode = %d\n", GetLastError());
+		return false;
+	}
+	if (miInfo.dwOperStatus == IF_OPER_STATUS_NON_OPERATIONAL || miInfo.dwOperStatus == IF_OPER_STATUS_UNREACHABLE
+		|| miInfo.dwOperStatus == IF_OPER_STATUS_DISCONNECTED || miInfo.dwOperStatus == IF_OPER_STATUS_CONNECTING)
+	{
+		return false;
+	}
+	else if (miInfo.dwOperStatus == IF_OPER_STATUS_OPERATIONAL || miInfo.dwOperStatus == IF_OPER_STATUS_CONNECTED)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
 
+std::vector<AdapterData> getHardInformation::getAdapterInfo()
+{
+	vector<AdapterData> m_vecAdapterData;
+	AdapterData m_AdapterData;
+	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF);
+	// PIP_ADAPTER_INFO 结构体指针存储本机网卡信息
+	PIP_ADAPTER_INFO pIPAdapterInfo = new IP_ADAPTER_INFO();
+	PIP_ADAPTER_INFO pAdapter = NULL;
+	// 得到结构体大小 , 用于 GetAdaptersInfo 参数
+	unsigned long ulSize = sizeof(IP_ADAPTER_INFO);
+	// 调用 GetAdaptersInfo 函数 , 填充 pIpAdapterInfo 指针变量 , 其中 ulSize 参数既是一个输入量也是一个输出量
+	int nRstCode = GetAdaptersInfo(pIPAdapterInfo, &ulSize);
+	// 记录网卡数量
+	int nNetCardNum = 0;
+	// 记录每张网卡上的 IP 地址数量
+	int nIPNumPerNetCard = 0;
+	if (ERROR_BUFFER_OVERFLOW == nRstCode)
+	{
+		// 如果函数返回的是 ERROR_BUFFER_OVERFLOW
+		// 则说明 GetAdaptersInfo 参数传递的内存空间不够 , 同时其传出 ulSize , 表示需要的空间大小
+		// 这也是说明为什么 ulSize 既是一个输入量也是一个输出量
+		// 释放原来的内存空间
+		delete pIPAdapterInfo;
+		// 重新申请内存空间用来存储所有网卡信息
+		pIPAdapterInfo = (PIP_ADAPTER_INFO)new BYTE[ulSize];
+		// 再次调用 GetAdaptersInfo 函数 , 填充 pIpAdapterInfo 指针变量
+		nRstCode = GetAdaptersInfo(pIPAdapterInfo, &ulSize);
+	}
+	if (ERROR_SUCCESS == nRstCode)
+	{
+		// 输出网卡信息 , 可能有多网卡 , 因此通过循环去判断
+		pAdapter = pIPAdapterInfo;
+		while (pAdapter)
+		{
+			//cout << "网卡数量 : " << ++nNetCardNum << endl;
+			//cout << "网卡名称 : " << pAdapter->AdapterName << endl;
+			//cout << "网卡描述 : " << pAdapter->Description << endl;
+			m_AdapterData.clear();
+			m_AdapterData.m_AdapterName=pAdapter->AdapterName;
+			m_AdapterData.m_AdapterDescription=pAdapter->Description;
+			string m_type;
+			switch (pAdapter->Type)
+			{
+			case MIB_IF_TYPE_OTHER:
+				m_type= "OTHER" ;
+				break;
+			case MIB_IF_TYPE_ETHERNET:
+				m_type= "ETHERNET";
+				break;
+			case MIB_IF_TYPE_TOKENRING:
+				m_type= "TOKENRING";
+				break;
+			case MIB_IF_TYPE_FDDI:
+				m_type= "FDDI";
+				break;
+			case MIB_IF_TYPE_PPP:
+				m_type= "PPP" ;
+				break;
+			case MIB_IF_TYPE_LOOPBACK:
+				m_type= "LOOPBACK";
+				break;
+			case MIB_IF_TYPE_SLIP:
+				m_type= "SLIP" ;
+				break;
+			default:
+				break;
+			}
+			m_AdapterData.m_AdapterType=m_type;
+			//cout << "网卡MAC地址 : ";
+			//for (DWORD i = 0; i < pAdapter->AddressLength; i++)
+			//{
+			//	if (i < pAdapter->AddressLength - 1)
+			//	{
+			//		printf("%02X-", pAdapter->Address[i]);
+			//	}
+			//	else
+			//	{
+			//		printf("%02X\n", pAdapter->Address[i]);
+			//	}
+			//}
+			//cout << "网卡IP地址如下 : " << endl;
+			//// 可能网卡有多 IP , 因此通过循环去判断
+			//IP_ADDR_STRING *pIPAddrString = &(pAdapter->IpAddressList);
+			//nIPNumPerNetCard = 0;
+			//while (pIPAddrString)
+			//{
+			//	cout << "该网卡上的IP数量 : " << ++nIPNumPerNetCard << endl;
+			//	cout << "IP 地址 : " << pIPAddrString->IpAddress.String << endl;
+			//	cout << "子网地址 : " << pIPAddrString->IpMask.String << endl;
+			//	cout << "网关地址 : " << pAdapter->GatewayList.IpAddress.String << endl;
+			//	pIPAddrString = pIPAddrString->Next;
+			//}
+			//if (GetAdapterState(pAdapter->Index))
+			//{
+			//	cout << "网卡工作正常" << endl;
+			//}
+			//else
+			//{
+			//	cout << "网卡工作异常" << endl;
+			//}
+			m_vecAdapterData.push_back(m_AdapterData);
+			pAdapter = pAdapter->Next;
+			//cout << "--------------------------------------------------------------------" << endl;
+		}
+	}
+	// 释放内存空间
+	if (pIPAdapterInfo != NULL)
+	{
+		delete[] pIPAdapterInfo;
+		pIPAdapterInfo = NULL;
+	}
+	//getchar();
+	return m_vecAdapterData;
+}
 

@@ -1,4 +1,5 @@
 ﻿#include "getHardInformation.h" 
+#include <string>
 #include <ostream>
 using namespace std;
 
@@ -24,7 +25,16 @@ int main(int argc, char* argv[])
 	}
 	cout << "Really Freq:" << m_phy.m_cpuFreq <<"Mhz"<< endl;
 	cout << "CPU Information:" << m_phy.m_cpuInformation.c_str() << endl;
-	cout << "Bios Information:" << m_phy.m_biosID.c_str() << endl;
+	cout << "Bios Information:" << m_phy.m_bios.c_str() << endl;
+	for (int i = 0;i< m_phy.m_AdapterName.size(); i++)
+	{
+		cout << "Adapter Num:" << i+1 << endl;
+		cout << "m_AdapterName" <<  ":" << m_phy.m_AdapterName[i] << endl;
+		cout << "m_Description" <<  ":" << m_phy.m_AdapterDescription[i] << endl;
+		cout << "m_Type" <<  ":" << m_phy.m_AdapterType[i] << endl;
+	}
+	//cout << "baseboard Information:" << m_phy.m_baseBoard.c_str() << endl;
+	//cout << "timezone Information:" << m_phy.m_timeZone.c_str() << endl;
 	system("pause");
 	return 0;
 }
