@@ -42,14 +42,17 @@
 //Win32_NetworkProtocol    
 
 #include "getHardInformation.h"
-#pragma comment(lib,"Iphlpapi.lib") 
+//#pragma comment(lib,"Iphlpapi.lib") 
 #define _WIN32_DCOM  
 #include <comdef.h>  
 #include <Wbemidl.h>  
 
-#pragma comment(lib, "wbemuuid.lib")  
+#pragma comment(lib, "wbemuuid.lib")
+
 getHardInformation::getHardInformation()
 {
+
+	m_hardwareInfo.clear();
 }
 
 
@@ -57,77 +60,45 @@ getHardInformation::~getHardInformation()
 {
 }
 
-physicicalData getHardInformation::getHardResult()
+hardwareInfo getHardInformation::getHardwareInfo()
 {
-	physicicalData m_physicicalData;
-	m_physicicalData.clear();
 
-	///************获取Mac序列号**************/
-	//PIP_ADAPTER_INFO pIpAdapterInfo = new IP_ADAPTER_INFO();
-	//unsigned long stSize = sizeof(IP_ADAPTER_INFO);
-	//int nRel = GetAdaptersInfo(pIpAdapterInfo, &stSize);
-	//int netCardNum = 0;
-	//if (ERROR_BUFFER_OVERFLOW == nRel)
-	//{
-	//	delete pIpAdapterInfo;
-	//	pIpAdapterInfo = (PIP_ADAPTER_INFO)new BYTE[stSize];
-	//	nRel = GetAdaptersInfo(pIpAdapterInfo, &stSize);
-	//}
-
-	//if (ERROR_SUCCESS == nRel)
-	//{
-	//	while (pIpAdapterInfo)
-	//	{
-	//		//cout <<  << ++netCardNum << endl;
-	//		//cout << "Macaddress:";
-	//		string m_strMacAddress;
-	//		for (DWORD i = 0; i < pIpAdapterInfo->AddressLength; i++)
-	//		{
-	//			char m_tenToSixteen[100];
-	//			sprintf(m_tenToSixteen, "%x", pIpAdapterInfo->Address[i]);
-	//			if (i < pIpAdapterInfo->AddressLength - 1)
-	//			{
-	//				m_strMacAddress = m_strMacAddress + m_tenToSixteen + "-";
-	//			}
-	//			else
-	//			{
-	//				m_strMacAddress = m_strMacAddress + m_tenToSixteen;
-	//			}
-	//		}
-	//		m_physicicalData.m_macAddress.push_back(m_strMacAddress);
-	//		m_strMacAddress.clear();
-	//		pIpAdapterInfo = pIpAdapterInfo->Next;
-
-	//	}
-
-	//}
 	/************获取CPU序列号**************/
 	__int32 deBuf[4];
 	__cpuidex(deBuf, 01, 0);
 	char result[100];
 	sprintf(result, "%.8X%.8X", deBuf[3], deBuf[0]);
-	m_physicicalData.m_cpuId.push_back(result);
+	m_hardwareInfo.m_cpuId.push_back(result);
 
 	/*
 	获取cpu实际频率，获取bios信息，获取系统设定的cpu信息
 	*/
-	m_physicicalData.m_cpuFreq = CpuFrequency();
-	m_physicicalData.m_bios = getInformation("Win32_BIOS");
-	m_physicicalData.m_cpuInformation = getInformation("Win32_Processor");
+	m_hardwareInfo.m_cpuFreq = cpuFrequency();
+	m_hardwareInfo.m_bios = getInformation("Win32_BIOS");
+	m_hardwareInfo.m_cpuInformation = getInformation("Win32_Processor");
 
-	for (int i = 0; i < getAdapterInfo().size(); i++)
+	/*for (int i = 0; i < getAdapterInfo().size(); i++)
 	{
-		m_physicicalData.m_AdapterName.push_back(getAdapterInfo()[i].m_AdapterName);
-		m_physicicalData.m_AdapterType.push_back(getAdapterInfo()[i].m_AdapterType);
-		m_physicicalData.m_AdapterDescription.push_back(getAdapterInfo()[i].m_AdapterDescription);
-		m_physicicalData.m_macAddress.push_back(getAdapterInfo()[i].m_macAddress);
-	}
-	//m_physicicalData.m_Adapterinfo = getAdapterInfo();
-	//m_physicicalData.m_timeZone = getInformation("Win32_TimeZone");
-	return m_physicicalData;
+	m_physicicalData.m_AdapterName.push_back(getAdapterInfo()[i].m_AdapterName);
+	m_physicicalData.m_AdapterType.push_back(getAdapterInfo()[i].m_AdapterType);
+	m_physicicalData.m_AdapterDescription.push_back(getAdapterInfo()[i].m_AdapterDescription);
+	m_physicicalData.m_macAddress.push_back(getAdapterInfo()[i].m_macAddress);
+	}*/
+	getAdapterInfo();
+	//getInformation("Win32_TimeZone");
+
+	SYSTEM_INFO  sysInfo;   //该结构体包含了当前计算机的信息：计算机的体系结构、中央处理器的类型、系统中中央处理器的数量、页面的大小以及其他信息。  
+	OSVERSIONINFOEX osvi;
+	GetSystemInfo(&sysInfo);
+	osvi.dwOSVersionInfoSize = sizeof(osvi);
+	m_hardwareInfo.m_ProcessorArchitecture = sysInfo.wProcessorArchitecture;
+	m_hardwareInfo.m_wProcessorLevel = sysInfo.wProcessorLevel;
+	m_hardwareInfo.m_dwActiveProcessorMask = sysInfo.dwActiveProcessorMask;
+	m_hardwareInfo.m_dwNumberOfProcessors = sysInfo.dwNumberOfProcessors;
+	return m_hardwareInfo;
 }
 
-double getHardInformation::CpuFrequency()
+double getHardInformation::cpuFrequency()
 {
 	//On a multiprocessor machine, it should not matter which processor is called.  
 	//However, you can get different results on different processors due to bugs in  
@@ -177,8 +148,8 @@ string getHardInformation::getInformation(std::string Type)
 	hres = CoInitializeEx(0, COINIT_MULTITHREADED);
 	if (FAILED(hres))
 	{
-	/*	cout << "Failed to initialize COM library. Error code = 0x"
-			<< hex << hres << endl;*/
+		/*	cout << "Failed to initialize COM library. Error code = 0x"
+		<< hex << hres << endl;*/
 		return m_cpuInforamtion;                  // Program has failed.  
 	}
 
@@ -201,7 +172,7 @@ string getHardInformation::getInformation(std::string Type)
 	if (FAILED(hres))
 	{
 		/*cout << "Failed to initialize security. Error code = 0x"
-			<< hex << hres << endl;*/
+		<< hex << hres << endl;*/
 		CoUninitialize();
 		return m_cpuInforamtion;                    // Program has failed.  
 	}
@@ -220,8 +191,8 @@ string getHardInformation::getInformation(std::string Type)
 	if (FAILED(hres))
 	{
 		/*cout << "Failed to create IWbemLocator object."
-			<< " Err code = 0x"
-			<< hex << hres << endl;*/
+		<< " Err code = 0x"
+		<< hex << hres << endl;*/
 		CoUninitialize();
 		return m_cpuInforamtion;                 // Program has failed.  
 	}
@@ -248,7 +219,7 @@ string getHardInformation::getInformation(std::string Type)
 	if (FAILED(hres))
 	{
 		/*cout << "Could not connect. Error code = 0x"
-			<< hex << hres << endl;*/
+		<< hex << hres << endl;*/
 		pLoc->Release();
 		CoUninitialize();
 		return m_cpuInforamtion;                // Program has failed.  
@@ -274,7 +245,7 @@ string getHardInformation::getInformation(std::string Type)
 	if (FAILED(hres))
 	{
 		/*cout << "Could not set proxy blanket. Error code = 0x"
-			<< hex << hres << endl;*/
+		<< hex << hres << endl;*/
 		pSvc->Release();
 		pLoc->Release();
 		CoUninitialize();
@@ -302,8 +273,8 @@ string getHardInformation::getInformation(std::string Type)
 	if (FAILED(hres))
 	{
 		/*cout << "Query for operating system name failed."
-			<< " Error code = 0x"
-			<< hex << hres << endl;*/
+		<< " Error code = 0x"
+		<< hex << hres << endl;*/
 		pSvc->Release();
 		pLoc->Release();
 		CoUninitialize();
@@ -348,7 +319,7 @@ string getHardInformation::getInformation(std::string Type)
 	return m_cpuInforamtion;   // Program successfully completed.  
 }
 
-bool getHardInformation::GetAdapterState(DWORD nIndex)
+bool getHardInformation::getAdapterState(DWORD nIndex)
 {
 	MIB_IFROW miInfo;   // 存放获取到的 Adapter 参数
 	memset(&miInfo, 0, sizeof(MIB_IFROW));
@@ -373,10 +344,10 @@ bool getHardInformation::GetAdapterState(DWORD nIndex)
 	}
 }
 
-std::vector<AdapterData> getHardInformation::getAdapterInfo()
+void getHardInformation::getAdapterInfo()
 {
-	vector<AdapterData> m_vecAdapterData;
-	AdapterData m_AdapterData;
+	//vector<AdapterData> m_vecAdapterData;
+	//AdapterData m_AdapterData;
 	_CrtSetDbgFlag(_CrtSetDbgFlag(_CRTDBG_REPORT_FLAG) | _CRTDBG_LEAK_CHECK_DF);
 	// PIP_ADAPTER_INFO 结构体指针存储本机网卡信息
 	PIP_ADAPTER_INFO pIPAdapterInfo = new IP_ADAPTER_INFO();
@@ -410,37 +381,37 @@ std::vector<AdapterData> getHardInformation::getAdapterInfo()
 			//cout << "网卡数量 : " << ++nNetCardNum << endl;
 			//cout << "网卡名称 : " << pAdapter->AdapterName << endl;
 			//cout << "网卡描述 : " << pAdapter->Description << endl;
-			m_AdapterData.clear();
-			m_AdapterData.m_AdapterName=pAdapter->AdapterName;
-			m_AdapterData.m_AdapterDescription=pAdapter->Description;
+			//m_AdapterData.clear();
+			m_hardwareInfo.m_AdapterName.push_back(pAdapter->AdapterName);
+			m_hardwareInfo.m_AdapterDescription.push_back(pAdapter->Description);
 			string m_type;
 			switch (pAdapter->Type)
 			{
 			case MIB_IF_TYPE_OTHER:
-				m_type= "OTHER" ;
+				m_type = "OTHER";
 				break;
 			case MIB_IF_TYPE_ETHERNET:
-				m_type= "ETHERNET";
+				m_type = "ETHERNET";
 				break;
 			case MIB_IF_TYPE_TOKENRING:
-				m_type= "TOKENRING";
+				m_type = "TOKENRING";
 				break;
 			case MIB_IF_TYPE_FDDI:
-				m_type= "FDDI";
+				m_type = "FDDI";
 				break;
 			case MIB_IF_TYPE_PPP:
-				m_type= "PPP" ;
+				m_type = "PPP";
 				break;
 			case MIB_IF_TYPE_LOOPBACK:
-				m_type= "LOOPBACK";
+				m_type = "LOOPBACK";
 				break;
 			case MIB_IF_TYPE_SLIP:
-				m_type= "SLIP" ;
+				m_type = "SLIP";
 				break;
 			default:
 				break;
 			}
-			m_AdapterData.m_AdapterType=m_type;
+			m_hardwareInfo.m_AdapterType.push_back(m_type);
 			//cout << "网卡MAC地址 : ";
 			string m_strMacAddress;
 			for (DWORD i = 0; i < pAdapter->AddressLength; i++)
@@ -456,8 +427,8 @@ std::vector<AdapterData> getHardInformation::getAdapterInfo()
 					m_strMacAddress = m_strMacAddress + m_tenToSixteen;
 				}
 			}
-			m_AdapterData.m_macAddress=m_strMacAddress;
-			m_vecAdapterData.push_back(m_AdapterData);
+			//m_AdapterData.m_macAddress=m_strMacAddress;
+			m_hardwareInfo.m_macAddress.push_back(m_strMacAddress);
 			pAdapter = pAdapter->Next;
 			//cout << "--------------------------------------------------------------------" << endl;
 		}
@@ -469,6 +440,5 @@ std::vector<AdapterData> getHardInformation::getAdapterInfo()
 		pIPAdapterInfo = NULL;
 	}
 	//getchar();
-	return m_vecAdapterData;
 }
 

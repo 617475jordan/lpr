@@ -10,67 +10,59 @@
 using namespace std;
 
 
-struct physicicalData
+struct hardwareInfo
 {
 	vector<string>      m_macAddress;
 	/*****
 	网卡名字，网卡描述，网卡类型
 	******/
-//	vector<AdapterData> m_Adapterinfo;
-	vector<string>      m_cpuId;
+	//	vector<AdapterData> m_Adapterinfo;
+
 	string              m_bios;
-	string              m_hardDiskID;
-	string              m_mainPlateID;
-	string              m_cpuInformation;
-	string              m_timeZone;
+
+
 	vector<string>      m_AdapterName;
 	vector<string>      m_AdapterDescription;
 	vector<string>      m_AdapterType;
+
+
 	long                m_cpuFreq = -1;
+	vector<string>      m_cpuId;
+	string              m_cpuInformation;
+	int                 m_ProcessorArchitecture;//处理器架构
+	int                 m_dwActiveProcessorMask;//处理器掩码
+	int                 m_dwNumberOfProcessors;//处理器数量
+	int                 m_wProcessorLevel;//处理器级别
 	void clear()
 	{
 		m_cpuId.clear();
 		m_macAddress.clear();
 		m_bios.clear();
-		m_hardDiskID.clear();
-		m_mainPlateID.clear();
 		m_cpuFreq = -1;
 		m_cpuInformation.clear();
-		m_timeZone.clear();
 		m_AdapterName.clear();
 		m_AdapterDescription.clear();
 		m_AdapterType.clear();
 	}
 };
-struct AdapterData
-{
-	string m_AdapterName;
-	string m_AdapterDescription;
-	string m_AdapterType;
-	string m_macAddress;
-	void clear()
-	{
-		m_AdapterName.clear();
-		m_AdapterDescription.clear();
-		m_AdapterType.clear();
-		m_macAddress.clear();
-	}
-};
+
 class getHardInformation
 {
 public:
 	getHardInformation();
 	~getHardInformation();
-	physicicalData getHardResult();
+	hardwareInfo              getHardwareInfo();
 protected:
-	double CpuFrequency();
-	string getInformation(std::string Type);
+	double                    cpuFrequency();
+	string                    getInformation(std::string Type);
 	unsigned __int64 RDTSC()
 	{
 		__asm _emit 0x0F;
 		__asm _emit 0x31;
 	}
 
-	bool GetAdapterState(DWORD nIndex);
-	vector<AdapterData> getAdapterInfo();
+	bool                     getAdapterState(DWORD nIndex);
+	void                     getAdapterInfo();
+protected:
+	hardwareInfo             m_hardwareInfo;
 };
