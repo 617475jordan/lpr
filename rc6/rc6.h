@@ -1,35 +1,47 @@
-#ifndef RC6_H
-#define RC6_H
+#pragma once
 
 #include <stdint.h>
 
-#define ROUNDS      20      // Количество раундов
-#define KEY_LENGTH  256     // Длина ключа
-#define W           32      // Длина машинного слова в битах
+#define ROUNDS      20      // �ִ���
+#define KEY_LENGTH  256     // ��Կ����
+#define W           32      // �����ֳ���
 
-// n = 128 бит - длина блока (32+32+32+32)
+// n = 128 λ�鳤�� (32+32+32+32)
 
-// Контекст RC6
+// ������RC6
 typedef struct rc6_ctx
 {
-    uint8_t r;      // Число раундов, по умолчанию 20
-    uint32_t *S;    // 32-битные раундовые ключи
+	uint8_t r;      // ������Ĭ��20
+	uint32_t *S;    // 32-�ҧڧ�ߧ��� ��ѧ�ߧէ�ӧ��� �ܧݧ���
 } rc6_ctx_t;
 
-// Создание нового контекста RC6
-rc6_ctx_t* ak_rc6_ctx_create_new();
+class RC6
+{
+public:
+	RC6();
+	~RC6();
 
-// Удаление контекста RC6
-void ak_rc6_ctx_free(rc6_ctx_t *ctx);
+	// ɾ��RC6������
+	void ak_rc6_ctx_free(rc6_ctx_t *ctx);
 
-// Алгоритм развёртки ключа
-void ak_rc6_ctx_key_schedule(rc6_ctx_t *ctx, void *key);
+	// ���ݧԧ��ڧ�� ��ѧ٧ӧק��ܧ� �ܧݧ���
+	void ak_rc6_ctx_key_schedule(rc6_ctx_t *ctx, void *key);
 
-// Алгоритм зашифрования
-void ak_rc6_ctx_encrypt(rc6_ctx_t *ctx, void *block);
+	// �����㷨
+	void ak_rc6_ctx_encrypt(rc6_ctx_t *ctx, void *block);
 
-// Алгоритм расшифрования
-void ak_rc6_ctx_decrypt(rc6_ctx_t *ctx, void *block);
+	// �����㷨
+	void ak_rc6_ctx_decrypt(rc6_ctx_t *ctx, void *block);
+protected:
+	uint32_t rol32(uint32_t a, uint8_t n);
+	uint32_t ror32(uint32_t a, uint8_t n);
+};
 
-#endif // RC6_H
-
+class rc6Ctx
+{
+public:
+	rc6Ctx();
+	~rc6Ctx();
+	rc6_ctx_t* ak_rc6_ctx_create_new();
+	void ak_rc6_ctx_free(rc6_ctx_t *ctx);
+};

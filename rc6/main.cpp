@@ -4,7 +4,8 @@
 
 void test(unsigned char *key, unsigned char *txt)
 {
-    rc6_ctx_t *p = ak_rc6_ctx_create_new();
+	rc6Ctx *p = new rc6Ctx();
+	rc6_ctx_t *m_p = p->ak_rc6_ctx_create_new();
     printf("Test vector:\n");
     printf("User key:\t");
     for(int i = 0; i < 32; ++i)
@@ -25,9 +26,9 @@ void test(unsigned char *key, unsigned char *txt)
         printf("%x ", txt[i]);
     }
     printf("\n");
-
-    ak_rc6_ctx_key_schedule(p,key);
-    ak_rc6_ctx_encrypt(p, txt);
+	RC6 *m_rc6 = new RC6();
+	m_rc6->ak_rc6_ctx_key_schedule(m_p, key);
+	m_rc6->ak_rc6_ctx_encrypt(m_p, txt);
     printf("Cipher text:\t");
     for(int i = 0; i < 16; ++i)
     {
@@ -37,7 +38,7 @@ void test(unsigned char *key, unsigned char *txt)
     }
     printf("\n");
 
-    ak_rc6_ctx_decrypt(p, txt);
+	m_rc6->ak_rc6_ctx_decrypt(m_p, txt);
     printf("User text:\t");
     for(int i = 0; i < 16; ++i)
     {
@@ -46,6 +47,13 @@ void test(unsigned char *key, unsigned char *txt)
         printf("%x ", txt[i]);
     }
     printf("\n\n");
+	m_rc6 = NULL;
+	delete[] m_rc6;
+	p->ak_rc6_ctx_free(m_p);
+	m_p = NULL;
+	delete[] m_p;
+	p = NULL;
+	delete[] p;
 }
 
 
