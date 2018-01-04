@@ -15,6 +15,78 @@ RC6::RC6()
 RC6::~RC6()
 {
 }
+
+string RC6::encrypt(string m_strKey, string ciphertext, int lenFile)
+{
+	rc6Ctx *p = new rc6Ctx();
+	rc6_ctx_t *m_p = p->ak_rc6_ctx_create_new();
+	
+	int m_key = m_strKey.length();
+	unsigned char *key = new unsigned char[m_key];
+	for (int i = 0; i < m_key; i++)
+	{
+		key[i] = (unsigned char)m_strKey[i];
+	}
+	unsigned char *bits = new unsigned char[lenFile];  
+	for (int i = 0; i < lenFile; ++i)
+	{
+		bits[i] = (unsigned char)ciphertext[i];
+	}
+	ciphertext.clear();
+	ak_rc6_ctx_key_schedule(m_p, key);
+	ak_rc6_ctx_encrypt(m_p, bits);
+	string m_ciphertext = (char*)bits;
+	/*for (int i = 0; i < lenFile; i++)
+	{
+		m_ciphertext = m_ciphertext + (char)bits[i];
+	}*/
+	bits = NULL;
+	delete[] bits;
+	p->ak_rc6_ctx_free(m_p);
+	p = NULL;
+	delete[] p;
+	m_p = NULL;
+	delete[] m_p;
+	key = NULL;
+	delete[] key;
+	return m_ciphertext;
+}
+
+string RC6::decrypt(string m_strKey, string ciphertext, int lenFile)
+{
+	rc6Ctx *p = new rc6Ctx();
+	rc6_ctx_t *m_p = p->ak_rc6_ctx_create_new();
+
+	int m_key = m_strKey.length();
+	unsigned char *key = new unsigned char[m_key];
+	for (int i = 0; i < m_key; i++)
+	{
+		key[i] = (unsigned char)m_strKey[i];
+	}
+
+	unsigned char *bits = new unsigned char[lenFile];
+	for (int i = 0; i < lenFile; ++i)
+	{
+		bits[i] = (unsigned char)ciphertext[i];
+	}
+	ciphertext.clear();
+	ak_rc6_ctx_key_schedule(m_p, key);
+	ak_rc6_ctx_decrypt(m_p, bits);
+	string m_ciphertext = (char*)bits;
+	/*for (int i = 0; i < lenFile; i++)
+	{
+	m_ciphertext = m_ciphertext + (char)bits[i];
+	}*/
+	bits = NULL;
+	delete[] bits;
+	p->ak_rc6_ctx_free(m_p);
+	p = NULL;
+	delete[] p;
+	m_p = NULL;
+	delete[] m_p;
+	return m_ciphertext;
+}
+
 void RC6::ak_rc6_ctx_key_schedule(rc6_ctx_t *ctx, void *key)
 {
 	ctx->S[0] = P32;
